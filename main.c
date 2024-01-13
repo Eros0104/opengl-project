@@ -114,10 +114,22 @@ void drawWall(int x1, int x2, int b1, int b2, int t1, int t2) {
   if ( dx == 0 ) { dx = 1; }
   int xs = x1;
 
+  // clip x
+  if (x1 < 0) { x1 = 0; } // left
+  if (x2 < 0) { x2 = 0; } // left
+  if (x1 > SW) { x1 = SW; } // right
+  if (x2 > SW) { x2 = SW; } // right
+
   // draw x vertical lines
   for (x = x1; x < x2; x++) {
     int y1 = dyb * (x - xs + 0.5) / dx + b1; // y bottom point
     int y2 = dyt * (x - xs + 0.5) / dx + t1; // y bottom point
+
+    // clip y
+    if (y1 < 0) { y1 = 0; } // top
+    if (y2 < 0) { y2 = 0; } // top
+    if (y1 > SH) { y1 = SH; } // bottom
+    if (y2 > SH) { y2 = SH; } // bottom
     
     for (y = y1; y < y2; y++) {
       pixel(x, y, 0);
