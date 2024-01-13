@@ -1,0 +1,5 @@
+# build files
+a.exe
+
+# editor files
+.nvimlog
