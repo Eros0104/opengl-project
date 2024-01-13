@@ -11,17 +11,26 @@
 #define GLSW       (SW*pixelScale)          //OpenGL window width
 #define GLSH       (SH*pixelScale)          //OpenGL window height
 //------------------------------------------------------------------------------
-typedef struct 
-{
+typedef struct {
  int fr1,fr2;           //frame 1 frame 2, to create constant frame rate
-}time; time T;
+} time; time T;
 
-typedef struct 
-{
+typedef struct {
  int w,s,a,d;           //move up, down, left, right
  int sl,sr;             //strafe left, right 
  int m;                 //move up, down, look up, down
-}keys; keys K;
+} keys; keys K;
+
+typedef struct {
+  float cos[360];       //cosine lookup table
+  float sin[360];       //sine lookup table
+} math; math M;
+
+typedef struct {
+ int x,y,z;               //x,y,z position
+ int a;                 //player angle of rotation
+ int l;                 //player look up/down
+} player; player P;
 //------------------------------------------------------------------------------
 
 void pixel(int x,int y, int c)                  //draw a pixel at x/y with rgb
@@ -44,41 +53,92 @@ void pixel(int x,int y, int c)                  //draw a pixel at x/y with rgb
 void movePlayer()
 {
  //move up, down, left, right
- if(K.a ==1 && K.m==0){ printf("left\n");}  
- if(K.d ==1 && K.m==0){ printf("right\n");}
- if(K.w ==1 && K.m==0){ printf("up\n");}
- if(K.s ==1 && K.m==0){ printf("down\n");}
+ if(K.a == 1 && K.m == 0){ 
+  P.a-=4; if(P.a < 0){ P.a+=360; }
+ }
+ if(K.d == 1 && K.m == 0){ 
+  P.a+=4; if(P.a > 359){ P.a-=360; }
+ }
+
+ int dx=M.sin[P.a]*10.0; 
+ int dy=M.cos[P.a]*10.0;
+
+ if(K.w ==1 && K.m==0) { 
+  P.x+=dx; P.y+=dy;
+ }
+
+ if(K.s ==1 && K.m==0) {
+  P.x-=dx; P.y-=dy;
+ }
+
  //strafe left, right
- if(K.sr==1){ printf("strafe left\n");}
- if(K.sl==1){ printf("strafe right\n");}
+ if(K.sr==1) { 
+  P.x+=dy; P.y-=dx;
+ }
+ if(K.sl==1) { 
+  P.x-=dy; P.y+=dx;
+ }
  //move up, down, look up, look down
- if(K.a==1 && K.m==1){ printf("look up\n");}
- if(K.d==1 && K.m==1){ printf("look down\n");}
- if(K.w==1 && K.m==1){ printf("move up\n");}
- if(K.s==1 && K.m==1){ printf("move down\n");}
+ if(K.a==1 && K.m==1) { 
+  P.l-=1;
+ }
+
+ if(K.d==1 && K.m==1) { 
+  P.l+=1;
+ }
+
+ if(K.w==1 && K.m==1){
+  P.z-=4;
+ }
+
+ if(K.s==1 && K.m==1){
+  P.z+=4;
+ }
 }
 
 void clearBackground() 
-{int x,y;
+{
+  int x,y;
  for(y=0;y<SH;y++)
  { 
   for(x=0;x<SW;x++){ pixel(x,y,8);} //clear background color
  }	
 }
 
-int tick;
-void draw3D()
-{int x,y,c=0;
- for(y=0;y<SH2;y++)
- {
-  for(x=0;x<SW2;x++)
-  {
-   pixel(x,y,c); 
-   c+=1; if(c>8){ c=0;}
+void draw3D() {
+  int wx[4], wy[4], wz[4]; //world x,y,z
+  float CS = M.cos[P.a];    //cosine of player angle
+  float SN = M.sin[P.a];    //sine of player angle
+
+  // offset bottom 2 points by player position
+  int x1 = 40 - P.x, y1 = 10 - P.y;
+  int x2 = 40 - P.x, y2 = 290 - P.y;
+
+  // world x position
+  wx[0] = x1 * CS - y1 * SN;
+  wx[1] = x2 * CS - y2 * SN;
+
+  // world y position (depth)
+  wy[0] = x1 * SN + y1 * CS;
+  wy[1] = x2 * SN + y2 * CS;
+
+  // world z height
+  wz[0] = 0-P.z + ((P.l * wy[0]) / 32);
+  wz[1] = 0-P.z + ((P.l * wy[1]) / 32);
+
+  // screen x, screen y position
+  wx[0] = wx[0] * 200 / wy[0] + SW2; wy[0] = wz[0] * 200 / wy[0] + SH2;
+  wx[1] = wx[1] * 200 / wy[1] + SW2; wy[1] = wz[1] * 200 / wy[1] + SH2;
+
+  // draw points
+  if (wx[0] > 0 && wx[0] < SW && wy[0] > 0 && wy[0] < SH) {
+    pixel(wx[0], wy[0], 0);
   }
- }
- //frame rate
- tick+=1; if(tick>20){ tick=0;} pixel(SW2,SH2+tick,0); 
+
+  if (wx[1] > 0 && wx[1] < SW && wy[1] > 0 && wy[1] < SH) {
+    pixel(wx[1], wy[1], 0);
+  }
+
 }
 
 void display() 
@@ -108,6 +168,7 @@ void KeysDown(unsigned char key,int x,int y)
  if(key==','==1){ K.sr=1;} 
  if(key=='.'==1){ K.sl=1;} 
 }
+
 void KeysUp(unsigned char key,int x,int y)
 { 
  if(key=='w'==1){ K.w =0;}
@@ -119,8 +180,15 @@ void KeysUp(unsigned char key,int x,int y)
  if(key=='.'==1){ K.sl=0;}
 }
 
-void init()
-{       
+void init() {
+  int x;
+
+  for (x = 0; x < 360; x++) {
+    M.cos[x] = cos(x / 180.0 * M_PI);
+    M.sin[x] = sin(x / 180.0 * M_PI);
+  }
+
+  P.x = 70; P.y = -110; P.z = 20; P.a = 0; P.l = 0; //player position
 }
 
 int main(int argc, char* argv[])
