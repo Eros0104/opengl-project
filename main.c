@@ -105,6 +105,27 @@ void clearBackground()
  }	
 }
 
+void drawWall(int x1, int x2, int b1, int b2, int t1, int t2) {
+  int x,y;
+  // hold difference in distance
+  int dyb = b2 - b1;
+  int dyt = t2 - t1;
+  int dx = x2 - x1;
+  if ( dx == 0 ) { dx = 1; }
+  int xs = x1;
+
+  // draw x vertical lines
+  for (x = x1; x < x2; x++) {
+    int y1 = dyb * (x - xs + 0.5) / dx + b1; // y bottom point
+    int y2 = dyt * (x - xs + 0.5) / dx + t1; // y bottom point
+    
+    for (y = y1; y < y2; y++) {
+      pixel(x, y, 0);
+    }
+  }
+
+}
+
 void draw3D() {
   int wx[4], wy[4], wz[4]; //world x,y,z
   float CS = M.cos[P.a];    //cosine of player angle
@@ -117,27 +138,29 @@ void draw3D() {
   // world x position
   wx[0] = x1 * CS - y1 * SN;
   wx[1] = x2 * CS - y2 * SN;
+  wx[2] = wx[0];
+  wx[3] = wx[1];
 
   // world y position (depth)
   wy[0] = x1 * SN + y1 * CS;
   wy[1] = x2 * SN + y2 * CS;
+  wy[2] = wy[0];
+  wy[3] = wy[1];
 
   // world z height
   wz[0] = 0-P.z + ((P.l * wy[0]) / 32);
   wz[1] = 0-P.z + ((P.l * wy[1]) / 32);
+  wz[2] = wz[0] + 32;
+  wz[3] = wz[1] + 32;
 
   // screen x, screen y position
   wx[0] = wx[0] * 200 / wy[0] + SW2; wy[0] = wz[0] * 200 / wy[0] + SH2;
   wx[1] = wx[1] * 200 / wy[1] + SW2; wy[1] = wz[1] * 200 / wy[1] + SH2;
+  wx[2] = wx[2] * 200 / wy[2] + SW2; wy[2] = wz[2] * 200 / wy[2] + SH2;
+  wx[3] = wx[3] * 200 / wy[3] + SW2; wy[3] = wz[3] * 200 / wy[3] + SH2;
 
   // draw points
-  if (wx[0] > 0 && wx[0] < SW && wy[0] > 0 && wy[0] < SH) {
-    pixel(wx[0], wy[0], 0);
-  }
-
-  if (wx[1] > 0 && wx[1] < SW && wy[1] > 0 && wy[1] < SH) {
-    pixel(wx[1], wy[1], 0);
-  }
+  drawWall(wx[0], wx[1], wy[0], wy[1], wy[2], wy[3]);
 
 }
 
