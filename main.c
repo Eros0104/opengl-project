@@ -105,6 +105,16 @@ void clearBackground()
  }	
 }
 
+void clipBehindPlayer(int *x1, int *y1, int *z1, int x2, int y2, int z2) {
+  float da = *y1; // distance plane -> point a
+  float db = y2; // distance plane -> point b 
+  float d = da - db; if (d == 0) { d = 1; }
+  float s = da / (da - db); // intersection factor
+  *x1 = *y1 + s * (x2 - (*x1));
+  *y1 = *y1 + s * (y2 - (*y1)); if (*y1 == 0) { *y1 = 1; } // prevent divide by zero
+  *z1 = *y1 + s * (z2 - (*z1));
+}
+
 void drawWall(int x1, int x2, int b1, int b2, int t1, int t2) {
   int x,y;
   // hold difference in distance
@@ -164,6 +174,20 @@ void draw3D() {
   wz[1] = 0-P.z + ((P.l * wy[1]) / 32);
   wz[2] = wz[0] + 32;
   wz[3] = wz[1] + 32;
+
+  // dont draw if behind player
+  if (wy[0] < 1 && wy[1] < 1) { return; }
+
+  // clip behind player
+  if (wy [0] < 1 ) { 
+    clipBehindPlayer(&wx[0], &wy[0], &wz[0], &wx[1], &wy[1], &wz[1]); // bottom line
+    clipBehindPlayer(&wx[2], &wy[2], &wz[2], &wx[3], &wy[3], &wz[3]); // top line
+  }
+
+  if (wy[1] < 1) {
+    clipBehindPlayer(&wx[1], &wy[1], &wz[1], &wx[0], &wy[0], &wz[0]); // bottom line
+    clipBehindPlayer(&wx[3], &wy[3], &wz[3], &wx[2], &wy[2], &wz[2]); // top line
+  }
 
   // screen x, screen y position
   wx[0] = wx[0] * 200 / wy[0] + SW2; wy[0] = wz[0] * 200 / wy[0] + SH2;
