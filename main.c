@@ -1,6 +1,6 @@
 #include <math.h>
 #include <stdio.h>
-#include <GL/glut.h>
+#include <GLUT/glut.h>
 
 #define res 1                  // 0=160x120 1=360x240 4=640x480
 #define SW 160 * res           // screen width
