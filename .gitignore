@@ -1,6 +1,5 @@
 # build files
-a.exe
-game
+bin
 
 # editor files
 .nvimlog
