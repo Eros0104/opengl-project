@@ -1,6 +1,7 @@
 MKDIR_P = mkdir -p
 BUILD_DIR = bin
 OUTPUT = game
+MAIN_FILE = src/main.c
 
 all: clean build run
 
@@ -11,7 +12,7 @@ clean:
 build:
 	@echo "Building..."
 	@$(MKDIR_P) $(BUILD_DIR)
-	@gcc -o $(BUILD_DIR)/$(OUTPUT) main.c -framework OpenGL -framework GLUT
+	@gcc -o $(BUILD_DIR)/$(OUTPUT) $(MAIN_FILE) -framework OpenGL -framework GLUT
 
 run:
 	@echo "Running..."
