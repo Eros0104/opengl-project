@@ -349,14 +349,14 @@ void draw3D()
         // clip behind player
         if (wy[0] < 1)
         {
-          clipBehindPlayer(&wx[0], &wy[0], &wz[0], &wx[1], &wy[1], &wz[1]); // bottom line
-          clipBehindPlayer(&wx[2], &wy[2], &wz[2], &wx[3], &wy[3], &wz[3]); // top line
+          clipBehindPlayer(&wx[0], &wy[0], &wz[0], wx[1], wy[1], wz[1]); // bottom line
+          clipBehindPlayer(&wx[2], &wy[2], &wz[2], wx[3], wy[3], wz[3]); // top line
         }
 
         if (wy[1] < 1)
         {
-          clipBehindPlayer(&wx[1], &wy[1], &wz[1], &wx[0], &wy[0], &wz[0]); // bottom line
-          clipBehindPlayer(&wx[3], &wy[3], &wz[3], &wx[2], &wy[2], &wz[2]); // top line
+          clipBehindPlayer(&wx[1], &wy[1], &wz[1], wx[0], wy[0], wz[0]); // bottom line
+          clipBehindPlayer(&wx[3], &wy[3], &wz[3], wx[2], wy[2], wz[2]); // top line
         }
 
         // screen x, screen y position
